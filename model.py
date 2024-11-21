@@ -326,14 +326,14 @@ if __name__ == '__main__':
     while testcase != 'q':
         if testcase == '1':
             test_data = material_input()
-            print("Inputed Material: ")
+            print("\nInputed Material: ")
             print(test_data)
             if pd.notna(test_data['Strain'].iloc[0]):
                 models = {"Brinell":bHrf,"Pressure":prf}
             else:
                 models = {"Brinell":bHrf,"Pressure":prf,"Strain":srf}
             predictions = all_predictions(test_data, models)
-            print("Predicted Material Properties")
+            print("\nPredicted Material Properties")
             print(predictions)
         elif testcase == '2':
             test_data = material_input()
