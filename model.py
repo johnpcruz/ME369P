@@ -11,7 +11,7 @@ Ensure columns are numerical and create a Type column for each samples material.
 Drop columns that are not wanted for testing.
 '''
 data = pd.read_csv("Data.csv")
-print(data.info())
+#print(data.info())
 # Std	ID	Material	Heat treatment	Su	Sy	A5	Bhn	E	G	mu	Ro	pH	Desc	HV
 # Units are in MPa
 data.rename(columns = {"Std":"Standard","Su":"UTS","Sy":"Yield","A5":"Strain",
@@ -20,7 +20,6 @@ data.rename(columns = {"Std":"Standard","Su":"UTS","Sy":"Yield","A5":"Strain",
 
 data['Yield'] = pd.to_numeric(data['Yield'], errors = 'coerce')
 data = data.dropna(subset = ['Yield']).astype({'Yield': 'int64'})
-print(data.info())
 
 
 # Create column with sample's material type
@@ -43,7 +42,6 @@ For training the models for properties such as hardness and strain, we convert
 the material type column into binary columns for the model to read.
 '''
 data_encoded = pd.get_dummies(data, columns = ["Type"])
-print(data_encoded.info())
 
 '''
 Brinell test data and model
@@ -62,6 +60,7 @@ mae = mean_absolute_error(bHY_test, bHY_pred)
 mse = root_mean_squared_error(bHY_test, bHY_pred)
 r2 = r2_score(bHY_test, bHY_pred)
 
+print("Brinell Hardness Model")
 print(f'Mean Absolute Error: {mae}')
 print(f'Root Mean Squared Error: {mse}')
 print(f'R-squared: {r2}')
@@ -94,6 +93,7 @@ mae = mean_absolute_error(vY_test, vY_pred)
 mse = root_mean_squared_error(vY_test, vY_pred)
 r2 = r2_score(vY_test, vY_pred)
 
+print("Vickers Hardness Model")
 print(f'Mean Absolute Error: {mae}')
 print(f'Root Mean Squared Error: {mse}')
 print(f'R-squared: {r2}')
@@ -126,6 +126,7 @@ mae = mean_absolute_error(pY_test, pY_pred)
 mse = root_mean_squared_error(pY_test, pY_pred)
 r2 = r2_score(pY_test, pY_pred)
 
+print("Pressure at Yield Model")
 print(f'Mean Absolute Error: {mae}')
 print(f'Root Mean Squared Error: {mse}')
 print(f'R-squared: {r2}')
@@ -159,6 +160,7 @@ mae = mean_absolute_error(sY_test, sY_pred)
 mse = root_mean_squared_error(sY_test, sY_pred)
 r2 = r2_score(sY_test, sY_pred)
 
+print("Strain Model")
 print(f'Mean Absolute Error: {mae}')
 print(f'Root Mean Squared Error: {mse}')
 print(f'R-squared: {r2}')
@@ -197,22 +199,24 @@ importance_df = importance_df.sort_values(by='Importance', ascending=False)
 print("Strain")
 print(importance_df)
 
-new_sample = pd.DataFrame({'UTS':[552],'Yield':[186],'Strain':[35],
-                     'Elastic Mod':[120000],'Shear Mod':[45000],'Poissons':[0.32],
-                     'Density':[8800]})
-new_sample = pd.DataFrame({'UTS':[950],'Yield':[750],'Strain':[None],
-                     'Elastic Mod':[211000],'Shear Mod':[82000],'Poissons':[0.29],
-                     'Density':[7640]})
-predicted_material = mat_classifier.predict(new_sample)
-print(f"Predicted Material Type: {predicted_material}")
+#new_sample = pd.DataFrame({'UTS':[552],'Yield':[186],'Strain':[35],
+#                     'Elastic Mod':[120000],'Shear Mod':[45000],'Poissons':[0.32],
+#                     'Density':[8800]})
+# new_sample = pd.DataFrame({'UTS':[950],'Yield':[750],'Strain':[None],
+#                      'Elastic Mod':[211000],'Shear Mod':[82000],'Poissons':[0.29],
+#                      'Density':[7640]})
+# predicted_material = mat_classifier.predict(new_sample)
+# print(f"Predicted Material Type: {predicted_material}")
 
-
+def classifier(data):
+    prediction = mat_classifier.predict(data)
+    return prediction
 
 
 '''
 Material Verifier
 '''
-def verifier(data,classifier):
+def verifier(data,classifier=mat_classifier):
     results = []
     for _, row in data.iterrows():
         features = row.drop(['Type']).values.reshape(1, -1)
@@ -235,11 +239,14 @@ def verifier(data,classifier):
     # Return results as a DataFrame
     return pd.DataFrame(results)
 
-test_data = pd.DataFrame({'UTS':[150],'Yield':[120],'Strain':[6],
-                     'Elastic Mod':[45000],'Shear Mod':[18000],'Poissons':[0.35],
-                     'Density':[1740],'Type':['magnesium']})
-verification_results = verifier(test_data, mat_classifier)
-print(verification_results)
+#test_data = pd.DataFrame({'UTS':[150],'Yield':[120],'Strain':[6],
+#                     'Elastic Mod':[45000],'Shear Mod':[18000],'Poissons':[0.35],
+#                     'Density':[1740],'Type':['magnesium']})
+# test_data = pd.DataFrame({'UTS':[850],'Yield':[630],'Strain':[13],
+#                      'Elastic Mod':[206000],'Shear Mod':[80000],'Poissons':[0.3],
+#                      'Density':[7860],'Type':['steel']})
+# verification_results = verifier(test_data, mat_classifier)
+# print(verification_results)
 
 
 
@@ -284,38 +291,111 @@ def predict(model, data, mean_values, target, classifier = mat_classifier):
     
     return prediction
 
-test = pd.DataFrame({'UTS':[386],'Yield':[284],'Strain':[37],
-                     'Elastic Mod':[None],'Shear Mod':[None],'Poissons':[None],
-                     'Density':[7860],'Type':'steel'})
-test1 = pd.DataFrame({'UTS':[440],'Yield':[370],'Strain':[None],
-                     'Elastic Mod':[205000],'Shear Mod':[80000],'Poissons':[0.29],
-                     'Density':[7870],'Type':[None]})
+# test = pd.DataFrame({'UTS':[386],'Yield':[284],'Strain':[37],
+#                      'Elastic Mod':[None],'Shear Mod':[None],'Poissons':[None],
+#                      'Density':[7860],'Type':'steel'})
+# test1 = pd.DataFrame({'UTS':[440],'Yield':[370],'Strain':[None],
+#                      'Elastic Mod':[205000],'Shear Mod':[80000],'Poissons':[0.29],
+#                      'Density':[7870],'Type':[None]})
 
-prediction = predict(bHrf, test1, mean_values, target = "Brinell")
-print(prediction)
+# prediction = predict(bHrf, test1, mean_values, target = "Brinell")
+# print(prediction)
 
 
-test2 = pd.DataFrame({'UTS':[900],'Yield':[680],'Strain':[10],
-                     'Elastic Mod':[206000],'Shear Mod':[80000],'Poissons':[0.3],
-                     'Density':[7860],'Type':['steel']})
+# test2 = pd.DataFrame({'UTS':[900],'Yield':[680],'Strain':[10],
+#                      'Elastic Mod':[206000],'Shear Mod':[80000],'Poissons':[0.3],
+#                      'Density':[7860],'Type':['steel']})
 
-test3 = pd.DataFrame({'UTS':[850],'Yield':[630],'Strain':[13],
-                     'Elastic Mod':[206000],'Shear Mod':[80000],'Poissons':[0.3],
-                     'Density':[7860],'Type':['steel']})
+# test3 = pd.DataFrame({'UTS':[850],'Yield':[630],'Strain':[13],
+#                      'Elastic Mod':[206000],'Shear Mod':[80000],'Poissons':[0.3],
+#                      'Density':[7860],'Type':['steel']})
 
-test4 = pd.DataFrame({'UTS':[421],'Yield':[314],'Strain':[None],
-                     'Elastic Mod':[207000],'Shear Mod':[79000],'Poissons':[0.3],
-                     'Density':[7860],'Type':['steel']})
-prediction = predict(vrf, test4, mean_values, target = "Vickers")
-print(prediction)
-prediction = predict(srf, test4, mean_values, target = "Strain")
-print(prediction)
+# test4 = pd.DataFrame({'UTS':[421],'Yield':[314],'Strain':[None],
+#                      'Elastic Mod':[207000],'Shear Mod':[79000],'Poissons':[0.3],
+#                      'Density':[7860],'Type':['steel']})
+# prediction = predict(vrf, test4, mean_values, target = "Vickers")
+# print(prediction)
+# prediction = predict(srf, test4, mean_values, target = "Strain")
+# print(prediction)
  
+def all_predictions(data, models, classifier=mat_classifier):
+    
+    results = {}
+    for target, model in models.items():
+        prediction = predict(model, test_data.copy(), mean_values, target, classifier)
+        results[target]=prediction[0]
+    results = pd.DataFrame([results])
+    return results
 
+def material_input():
+    print("Please enter the following values for the material (leave blank if unknown):")
+    uts = input("Ultimate Tensile Strength (UTS): ")
+    yield_strength = input("Yield Strength: ")
+    strain = input("Strain: ")
+    elastic_mod = input("Elastic Modulus: ")
+    shear_mod = input("Shear Modulus: ")
+    poissons = input("Poisson's Ratio: ")
+    density = input("Density: ")
+    material_type = input("Material Type (e.g., steel, brass, etc.): ")
+    
+    data = {
+        'UTS': [float(uts) if uts else None],
+        'Yield': [float(yield_strength) if yield_strength else None],
+        'Strain': [float(strain) if strain else None],
+        'Elastic Mod': [float(elastic_mod) if elastic_mod else None],
+        'Shear Mod': [float(shear_mod) if shear_mod else None],
+        'Poissons': [float(poissons) if poissons else None],
+        'Density': [float(density) if density else None],
+        'Type': [material_type if material_type else None]
+    }
 
-
-
-
+    return pd.DataFrame(data)
 
 import warnings
 warnings.simplefilter("ignore", UserWarning)
+
+if __name__ == '__main__':
+    
+    
+    testcase = input("\nEnter 1 to predict material properties, 2 to predict material types, 3 to verify material, or q to quit: ")
+    while testcase != 'q':
+        if testcase == '1':
+            test_data = material_input()
+            print("Inputed Material: ")
+            print(test_data)
+            if pd.notna(test_data['Strain'].iloc[0]):
+                models = {"Brinell":bHrf,"Vickers":vrf,"Pressure":prf}
+            else:
+                models = {"Brinell":bHrf,"Vickers":vrf,"Pressure":prf,"Strain":srf}
+            predictions = all_predictions(test_data, models)
+            print("Predicted Material Properties")
+            print(predictions)
+        elif testcase == '2':
+            test_data = material_input()
+            test_data = test_data.drop(['Type'], axis=1)
+            print("Inputed Material: ")
+            print(test_data)
+            predicted_material = classifier(test_data)
+            print(f"Predicted Material Type: {predicted_material}")
+        elif testcase == '3':
+            test_data = material_input()
+            comparison = verifier(test_data)
+            print(comparison)
+        elif testcase == 'q':
+            break
+        else:
+            print("Invalid. Try Again")
+        testcase = input("\nEnter 1 to predict material properties, 2 to predict material types, 3 to verify material, or q to quit: ")            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
