@@ -78,39 +78,6 @@ print(importance_df)
 
 
 '''
-Vickers Model
-'''
-v_data = data_encoded.dropna(subset = ["Vickers"])
-v_dataX = v_data.drop(["Brinell","Pressure","Vickers"], axis = 1)
-v_dataY = v_data["Vickers"]
-
-vX_train, vX_test, vY_train, vY_test = train_test_split(v_dataX, v_dataY, test_size = 0.2, random_state = 1)
-vrf = RandomForestRegressor(n_estimators = 150, n_jobs = -1, random_state = 1)
-vrf.fit(vX_train, vY_train)
-vY_pred = vrf.predict(vX_test)
-
-mae = mean_absolute_error(vY_test, vY_pred)
-mse = root_mean_squared_error(vY_test, vY_pred)
-r2 = r2_score(vY_test, vY_pred)
-
-print("Vickers Hardness Model")
-print(f'Mean Absolute Error: {mae}')
-print(f'Root Mean Squared Error: {mse}')
-print(f'R-squared: {r2}')
-
-plt.scatter(vY_test, vY_pred)
-plt.xlabel('Actual Values')
-plt.ylabel('Predicted Values')
-plt.title('Vickers Actual vs Predicted')
-plt.show()
-
-importance_scores = vrf.feature_importances_
-importance_df = pd.DataFrame({'Feature': v_dataX.columns, 'Importance': importance_scores})
-importance_df = importance_df.sort_values(by='Importance', ascending=False)
-print(importance_df)
-
-
-'''
 Pressure Model
 '''
 p_data = data_encoded.dropna(subset = ["Pressure"])
@@ -126,7 +93,7 @@ mae = mean_absolute_error(pY_test, pY_pred)
 mse = root_mean_squared_error(pY_test, pY_pred)
 r2 = r2_score(pY_test, pY_pred)
 
-print("Pressure at Yield Model")
+print("\nPressure at Yield Model")
 print(f'Mean Absolute Error: {mae}')
 print(f'Root Mean Squared Error: {mse}')
 print(f'R-squared: {r2}')
@@ -140,7 +107,6 @@ plt.show()
 importance_scores = prf.feature_importances_
 importance_df = pd.DataFrame({'Feature': p_dataX.columns, 'Importance': importance_scores})
 importance_df = importance_df.sort_values(by='Importance', ascending=False)
-print("pressure")
 print(importance_df)
 
 
@@ -160,7 +126,7 @@ mae = mean_absolute_error(sY_test, sY_pred)
 mse = root_mean_squared_error(sY_test, sY_pred)
 r2 = r2_score(sY_test, sY_pred)
 
-print("Strain Model")
+print("\nStrain Model")
 print(f'Mean Absolute Error: {mae}')
 print(f'Root Mean Squared Error: {mse}')
 print(f'R-squared: {r2}')
@@ -174,7 +140,6 @@ plt.show()
 importance_scores = srf.feature_importances_
 importance_df = pd.DataFrame({'Feature': s_dataX.columns, 'Importance': importance_scores})
 importance_df = importance_df.sort_values(by='Importance', ascending=False)
-print("Strain")
 print(importance_df)
 
 '''
@@ -191,12 +156,12 @@ mat_classifier.fit(matX_train, matY_train)
 mat_pred = mat_classifier.predict(matX_test)
 
 accuracy = accuracy_score(matY_test, mat_pred)
+print("\nMaterial Classifier Model")
 print(f"Accuracy: {accuracy}")
 
 importance_scores = mat_classifier.feature_importances_
 importance_df = pd.DataFrame({'Feature': matX.columns, 'Importance': importance_scores})
 importance_df = importance_df.sort_values(by='Importance', ascending=False)
-print("Strain")
 print(importance_df)
 
 #new_sample = pd.DataFrame({'UTS':[552],'Yield':[186],'Strain':[35],
@@ -329,13 +294,13 @@ def all_predictions(data, models, classifier=mat_classifier):
 
 def material_input():
     print("Please enter the following values for the material (leave blank if unknown):")
-    uts = input("Ultimate Tensile Strength (UTS): ")
-    yield_strength = input("Yield Strength: ")
-    strain = input("Strain: ")
-    elastic_mod = input("Elastic Modulus: ")
-    shear_mod = input("Shear Modulus: ")
+    uts = input("Ultimate Tensile Strength (UTS) (MPa): ")
+    yield_strength = input("Yield Strength (MPa): ")
+    strain = input("Strain (%): ")
+    elastic_mod = input("Elastic Modulus (MPa): ")
+    shear_mod = input("Shear Modulus (MPa): ")
     poissons = input("Poisson's Ratio: ")
-    density = input("Density: ")
+    density = input("Density (kg/m^3): ")
     material_type = input("Material Type (e.g., steel, brass, etc.): ")
     
     data = {
@@ -364,9 +329,9 @@ if __name__ == '__main__':
             print("Inputed Material: ")
             print(test_data)
             if pd.notna(test_data['Strain'].iloc[0]):
-                models = {"Brinell":bHrf,"Vickers":vrf,"Pressure":prf}
+                models = {"Brinell":bHrf,"Pressure":prf}
             else:
-                models = {"Brinell":bHrf,"Vickers":vrf,"Pressure":prf,"Strain":srf}
+                models = {"Brinell":bHrf,"Pressure":prf,"Strain":srf}
             predictions = all_predictions(test_data, models)
             print("Predicted Material Properties")
             print(predictions)
@@ -388,14 +353,5 @@ if __name__ == '__main__':
         testcase = input("\nEnter 1 to predict material properties, 2 to predict material types, 3 to verify material, or q to quit: ")            
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     
